@@ -12,7 +12,7 @@ from bottle import run, route, get, post, response, request, jinja2_view as view
 from PIL import Image, ImageDraw, ImageFont
 
 from brother_ql.devicedependent import models, label_type_specs, label_sizes
-from brother_ql.devicedependent import ENDLESS_LABEL, DIE_CUT_LABEL, ROUND_DIE_CUT_LABEL
+from brother_ql.devicedependent import ENDLESS_LABEL, DIE_CUT_LABEL, ROUND_DIE_CUT_LABEL, PTOUCH_ENDLESS_LABEL 
 from brother_ql import BrotherQLRaster, create_label
 from brother_ql.backends import backend_factory, guess_backend
 
@@ -122,13 +122,20 @@ def create_label_im(text, **kwargs):
     if kwargs['orientation'] == 'standard':
         if label_type in (ENDLESS_LABEL,):
             height = textsize[1] + kwargs['margin_top'] + kwargs['margin_bottom']
+        elif label_type in (PTOUCH_ENDLESS_LABEL, ):
+            height = width
+            width = textsize[0] + kwargs['margin_left'] + kwargs['margin_right']
     elif kwargs['orientation'] == 'rotated':
         if label_type in (ENDLESS_LABEL,):
             width = textsize[0] + kwargs['margin_left'] + kwargs['margin_right']
+        elif label_type in (PTOUCH_ENDLESS_LABEL, ):
+            width = height
+            height = textsize[1] + kwargs['margin_top'] + kwargs['margin_bottom']
+
     im = Image.new('RGB', (width, height), 'white')
     draw = ImageDraw.Draw(im)
     if kwargs['orientation'] == 'standard':
-        if label_type in (DIE_CUT_LABEL, ROUND_DIE_CUT_LABEL):
+        if label_type in (DIE_CUT_LABEL, ROUND_DIE_CUT_LABEL, PTOUCH_ENDLESS_LABEL):
             vertical_offset  = (height - textsize[1])//2
             vertical_offset += (kwargs['margin_top'] - kwargs['margin_bottom'])//2
         else:
@@ -137,7 +144,7 @@ def create_label_im(text, **kwargs):
     elif kwargs['orientation'] == 'rotated':
         vertical_offset  = (height - textsize[1])//2
         vertical_offset += (kwargs['margin_top'] - kwargs['margin_bottom'])//2
-        if label_type in (DIE_CUT_LABEL, ROUND_DIE_CUT_LABEL):
+        if label_type in (DIE_CUT_LABEL, ROUND_DIE_CUT_LABEL, PTOUCH_ENDLESS_LABEL):
             horizontal_offset = max((width - textsize[0])//2, 0)
         else:
             horizontal_offset = kwargs['margin_left']
@@ -194,14 +201,20 @@ def print_text():
 
     if context['kind'] == ENDLESS_LABEL:
         rotate = 0 if context['orientation'] == 'standard' else 90
+    elif context['kind'] == PTOUCH_ENDLESS_LABEL:
+        rotate = 90 if context['orientation'] == 'standard' else 0
     elif context['kind'] in (ROUND_DIE_CUT_LABEL, DIE_CUT_LABEL):
         rotate = 'auto'
+
+    compress = False
+    if context['kind'] == PTOUCH_ENDLESS_LABEL:
+        compress = True
 
     qlr = BrotherQLRaster(CONFIG['PRINTER']['MODEL'])
     red = False
     if 'red' in context['label_size']:
         red = True
-    create_label(qlr, im, context['label_size'], red=red, threshold=context['threshold'], cut=True, rotate=rotate)
+    create_label(qlr, im, context['label_size'], red=red, threshold=context['threshold'], cut=True, rotate=rotate, compress=compress)
 
     if not DEBUG:
         try:
