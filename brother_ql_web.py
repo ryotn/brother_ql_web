@@ -32,7 +32,7 @@ except FileNotFoundError as e:
 
 @route('/')
 def index():
-    redirect('/labeldesigner')
+    redirect('./labeldesigner')
 
 @route('/static/<filename:path>')
 def serve_static(filename):
@@ -157,7 +157,9 @@ def create_label_im(text, **kwargs):
 def get_preview_image():
     context = get_label_context(request)
     im = create_label_im(**context)
-    return_format = request.query.get('return_format', 'png')
+    return_format = request.params.decode().get('return_format', 'png')
+    print(return_format)
+    response.set_header('Access-Control-Allow-Origin', '*')
     if return_format == 'base64':
         import base64
         response.set_header('Content-type', 'text/plain')
@@ -185,12 +187,16 @@ def print_text():
     """
 
     return_dict = {'success': False}
+    
+    response.set_header('Access-Control-Allow-Origin', '*')
 
     try:
         context = get_label_context(request)
     except LookupError as e:
         return_dict['error'] = e.msg
         return return_dict
+    
+    print(context)
 
     if context['text'] is None:
         return_dict['error'] = 'Please provide the text for the label'
