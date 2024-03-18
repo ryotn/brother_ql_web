@@ -1,0 +1,29 @@
+{
+  "SERVER": {
+    "PORT": 8013,
+    "HOST": "",
+    "PATH": "label",
+    "LOGLEVEL": "WARNING",
+    "ADDITIONAL_FONT_FOLDER": false
+  },
+  "PRINTER": {
+    "MODEL": "PT-P750W",
+    "PRINTER": "file:///dev/usb/lp0"
+  },
+  "LABEL": {
+    "DEFAULT_SIZE": "pt12",
+    "DEFAULT_ORIENTATION": "standard",
+    "DEFAULT_FONT_SIZE": 32,
+    "DEFAULT_FONTS": [
+      {"family": "Noto Sans CJK JP","style": "Regular"},
+      {"family": "Minion Pro",      "style": "Semibold"},
+      {"family": "Linux Libertine", "style": "Regular"},
+      {"family": "DejaVu Serif",    "style": "Book"}
+    ]
+  },
+  "WEBSITE": {
+    "HTML_TITLE": "Label Designer",
+    "PAGE_TITLE": "Brother QL Label Designer",
+    "PAGE_HEADLINE": "Design your label and print it…"
+  }
+}
